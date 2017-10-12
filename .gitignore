@@ -2,3 +2,5 @@ Debug/
 .project
 .cproject
 .settings/
+**/.idea
+**/py_chess/*.iml
