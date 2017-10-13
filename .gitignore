@@ -4,3 +4,4 @@ Debug/
 .settings/
 **/.idea
 **/py_chess/*.iml
+**/py_chess_env/
