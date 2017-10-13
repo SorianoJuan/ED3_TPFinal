@@ -1,24 +1,14 @@
-# import chess
 import chess.svg
-from tempfile import NamedTemporaryFile
-from PyQt5 import QtWidgets, QtSvg
-import sys
+from wand.image import Image
+from wand.color import Color
+from wand import display
 
-board = chess.Board("8/8/8/8/4N3/8/8/8 w - - 0 1")
-squares = board.attacks(chess.E4)
-img = chess.svg.board(board=board, squares=squares)
+board = chess.Board()
 
-f = NamedTemporaryFile()
+img_svg = chess.svg.board(board=board)
 
-f.write(img.encode())
+with Image(blob=img_svg.encode(), format='svg', resolution=175) as img:
+    img.background_color = Color('white')
+    img.alpha_channel = 'remove'
+    display.display(img)
 
-if __name__ == '__main__':
-
-    app = QtWidgets.QApplication(sys.argv)
-
-    svgWidget = QtSvg.QSvgWidget(f.name)
-    # svgWidget.setGeometry(50, 50, 759, 668)
-    svgWidget.setWindowTitle('Chessy')
-    svgWidget.showMaximized()
-
-    sys.exit(app.exec_())
