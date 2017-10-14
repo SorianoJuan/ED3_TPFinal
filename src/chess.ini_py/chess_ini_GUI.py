@@ -2,7 +2,7 @@ import sys
 from PyQt5 import QtCore, QtWidgets, QtSvg
 
 
-class Main(QtWidgets.QMainWindow):
+class Gui(QtWidgets.QMainWindow):
 
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
@@ -22,6 +22,7 @@ class Main(QtWidgets.QMainWindow):
         #---------Window settings --------------------------------
 
         self.setGeometry(50, 50, 750, 750)
+        self.setFixedSize(750, 750)
         self.setWindowTitle("Chess.ini")
 
     #-------- Slots ------------------------------------------
@@ -29,13 +30,14 @@ class Main(QtWidgets.QMainWindow):
     def Refresh(self):
         self.svgW.load('asd')
 
-def main():
+
+def GUI():
     app = QtWidgets.QApplication(sys.argv)
-    main = Main()
-    main.show()
+    g = Gui()
+    g.show()
 
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    main()
+    GUI()
 
