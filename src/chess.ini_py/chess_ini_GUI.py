@@ -1,5 +1,17 @@
 import sys
 from PyQt5 import QtCore, QtWidgets, QtSvg
+import threading
+
+
+class svgBoard:
+    def __init__(self):
+        self.svg = '0'
+
+    def set_svg(self, svg):
+        self.svg = svg
+
+    def get_svg(self):
+        return self.svg
 
 
 class Gui(QtWidgets.QMainWindow):
@@ -13,9 +25,9 @@ class Gui(QtWidgets.QMainWindow):
     def initUI(self):
 
         self.timer.timeout.connect(self.Refresh)
-        self.timer.start(150)
+        self.timer.start(0)
 
-        self.svgW.load('asd')
+        self.svgW.load(img_svg.get_svg().encode())
 
         self.setCentralWidget(self.svgW)
 
@@ -28,7 +40,9 @@ class Gui(QtWidgets.QMainWindow):
     #-------- Slots ------------------------------------------
 
     def Refresh(self):
-        self.svgW.load('asd')
+        if modified.is_set():
+            self.svgW.load(img_svg.get_svg().encode())
+            modified.clear()
 
 
 def GUI():
@@ -37,6 +51,9 @@ def GUI():
     g.show()
 
     sys.exit(app.exec_())
+
+modified = threading.Event()
+img_svg = svgBoard()
 
 if __name__ == "__main__":
     GUI()
