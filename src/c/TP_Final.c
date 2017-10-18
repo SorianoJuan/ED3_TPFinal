@@ -9,6 +9,17 @@
 #define AddrFIO0PIN 		0x2009C014
 #define AddrFIO0SET 		0x2009C018
 #define AddrFIO0CLR 		0x2009C01C
+
+#define AddrFIO1DIR 		0x2009C020
+#define AddrFIO1PIN 		0x2009C034
+#define AddrFIO1SET 		0x2009C038
+#define AddrFIO1CLR 		0x2009C03C
+
+#define AddrFI21DIR 		0x2009C040
+#define AddrFI21PIN 		0x2009C054
+#define AddrFI21SET 		0x2009C058
+#define AddrFI21CLR 		0x2009C05C
+
 #define AddrPINMODE0 		0x4002C040	//Para UART3
 #define AddrPINSEL1 		0x4002C004
 #define AddrPINSEL4			0x4002C010
@@ -22,6 +33,16 @@
 #define AddrT0CR0			0x4000402C	//Capture Register 0. CR0 se carga con el valor de TC cuando ocurre un evento en CAPn.0 (CAP0.0 o CAP1.0 respectivamente).
 #define AddrT0EMR			0x4000403C	//External Match Register. Controla los pines externos de match MATn.0-3.
 #define T0CTCR				0x40004070	//Count Control Register. Selecciona entre modos Timer y Counter y en modo Counter selecciona la señal y los flancos.
+
+#define AddrT1MR0  			0x40008018 //
+#define AddrT1MR1   		0x4000801C //
+#define AddrT1IR    		0x40008000 //
+#define AddrT1MCR   		0x40008014 //
+#define AddrT1TCR  			0x40008004 //
+#define AddrT1CCR			0x40008028 //
+#define AddrT1CR0			0x4000802C //
+#define AddrT1EMR			0x4000803C //
+#define T1CTCR				0x40008070 //
 //GpioInt
 #define AddrIO0IntEnF		0x40028094
 #define AddrIO0IntStatF 	0x40028088
@@ -62,16 +83,28 @@ unsigned int volatile *const PINSEL0 = (unsigned int*) AddrPINSEL0;
 unsigned int volatile *const PINSEL1 = (unsigned int*) AddrPINSEL1;
 unsigned int volatile *const PINSEL4 = (unsigned int*) AddrPINSEL4;
 unsigned int volatile *const PINMODE0 = (unsigned int*) AddrPINMODE0;
+
 unsigned int volatile *const FIO0DIR = (unsigned int*) AddrFIO0DIR;
 unsigned int volatile *const FIO0PIN = (unsigned int*) AddrFIO0PIN;
 unsigned int volatile *const FIO0SET = (unsigned int*) AddrFIO0SET;
 unsigned int volatile *const FIO0CLR = (unsigned int*) AddrFIO0CLR;
+
+unsigned int volatile *const FIO1DIR = (unsigned int*) AddrFIO1DIR;
+unsigned int volatile *const FIO1PIN = (unsigned int*) AddrFIO1PIN;
+unsigned int volatile *const FIO1SET = (unsigned int*) AddrFIO1SET;
+unsigned int volatile *const FIO1CLR = (unsigned int*) AddrFIO1CLR;
 //Timer
 unsigned int volatile *const T0MR0 = (unsigned int*) AddrT0MR0;
 unsigned int volatile *const T0MR1 = (unsigned int*) AddrT0MR1;
 unsigned int volatile *const T0IR = (unsigned int*) AddrT0IR;
 unsigned int volatile *const T0MCR = (unsigned int*) AddrT0MCR;
 unsigned int volatile *const T0TCR = (unsigned int*) AddrT0TCR;
+
+unsigned int volatile *const T1MR0 = (unsigned int*) AddrT1MR0;
+unsigned int volatile *const T1MR1 = (unsigned int*) AddrT1MR1;
+unsigned int volatile *const T1IR = (unsigned int*) AddrT1IR;
+unsigned int volatile *const T1MCR = (unsigned int*) AddrT1MCR;
+unsigned int volatile *const T1TCR = (unsigned int*) AddrT1TCR;
 //GPIO
 unsigned int volatile *const IO0IntEnF = (unsigned int*) AddrIO0IntEnF;
 unsigned int volatile *const IO0IntStatF = (unsigned int*) AddrIO0IntStatF;
@@ -106,10 +139,34 @@ unsigned int volatile *const PCONP = (unsigned int*) AddrPCONP;
 unsigned int volatile *const PCLKSEL0 = (unsigned int*) AddrPCLKSEL0;
 
 
-void init(void);
+void inicializar(void);
+void config(void);
+
+static unsigned int display0 = 0;
+static unsigned int display1 = 0;
+static unsigned int display2 = 9;
+static unsigned int tiempo = 900;
+static unsigned int mux = 1;
+
+static unsigned int tabla[]= {
+					0x000000c0,		//0 - 11000000
+			  	  	0x000000f9,		//1 - 11111001
+					0x000000a4,		//2 - 10100100
+					0x000000b0,		//3 - 10110000
+					0x00000099,		//4 - 10011001
+					0x00000012,		//5 - 00010010
+					0x00000082,		//6 - 10000010
+					0x000000f8,		//7 - 11111000
+					0x00000080,		//8 - 10000000
+					0x00000090};	//9 - 10010000
+
 
 int main(void) {
-init();
+
+config();
+
+inicializar();
+
         while(1) {
     }
     return 0 ;
@@ -117,23 +174,30 @@ init();
 
 
 
-void init(void){
+void config(void){
 	//-------
 	//Pines
 	//-------
-
+	*FIO2DIR |= 0x7F;				//7 segmentos del display
+	*FIO1DIR |= (7<<20);			//3 pines de multiplexado
+	*FIO2DIR |= 0x700;				//3 salidas de LED RGB
 	//--------
 	//Timer
 	//--------
- 	*T0MR0;							//MR0
-	*T0MR1;							//MR1
-	*T0MCR = 0x00000000;			//Borro el registro entero porque no se resetea el HDMP cuando debuggeas un nuevo programa
+	//Timer0
+ 	*T0MR0 = 25000000;				//MR0 Contando 1 segundo para displays
+	*T0MCR = 0x00000000;
  	*T0MCR |= (1<<0);				//Genera una interrupción cuando hay match entre MR0 y TC
- 	*T0MCR |= (1<<3);				//Genera una interrupción cuando hay match entre MR1 y TC
-	*T0MCR |= (1<<4);				//Resetea TC en el match con MR1
+	*T0MCR |= (1<<1);				//Resetea TC en el match con MR1
 	*T0IR  |= (1<<0);				//Limpia la interrupcion de TMR0 MR0
-	*T0IR  |= (1<<1);				//Limpia la interrupcion de TMR0 MR1
 	*T0TCR |= 1;					//Cuando es 1, habilita el contador del Timer y del Prescaler
+	//Timer1
+	*T1MR0 = 500000;				//MR0 Contando 20ms para multiplexado de displays
+	*T1MCR = 0x00000000;
+ 	*T1MCR |= (1<<0);				//Genera una interrupción cuando hay match entre MR0 y TC
+	*T1MCR |= (1<<1);				//Resetea TC en el match con MR1
+	*T1IR  |= (1<<0);				//Limpia la interrupcion de TMR0 MR0
+	*T1TCR |= 1;					//Cuando es 1, habilita el contador del Timer y del Prescaler
 	//-------
 	//GPIO
 	//-------
@@ -180,10 +244,44 @@ void init(void){
 	*ISER0 |= (1<<18);				//INTRP por EINT0
 	*ISER0 |= (1<<21);				//INTRP por EINT3 (GPIO)
 }
+void inicializar(void){
+
+}
+
 void TIMER0_IRQHandler (void){
 	if (*T0IR & 1){					//INTRP por MR0
+		tiempo--;
+		display0=~tabla[tiempo%10];
+		display1=~tabla[(tiempo/10)%10];
+		display2=~tabla[(tiempo/100)%10];
+
 	}
 		*T0IR = (1<<1);				//Bajar INTRP de MR1
+}
+
+void TIMER1_IRQHandler (void){
+	//TODO REVISAR SINCRONIZACION
+	*FIO1CLR |= 7;					//Limpiar todos los multiplexados
+
+	if(mux==1){						//Cargar los valores en el puerto
+		*FIO2SET |= display0;
+		*FIO2CLR |= display0;
+	}else if(mux==2){
+		*FIO2SET |= display1;
+		*FIO2CLR |= display1;
+	}else{
+		*FIO2SET |= display2;
+		*FIO2CLR |= display2;
+	}
+
+	if(mux==4){						//Si mux es 100, resetearlo a 001
+		mux=1;
+	}else
+	{
+		mux = (mux<<1);				//Desplazar el 1 de mux
+	}
+	*FIO1SET |= mux;
+	*FIO1CLR &= ~mux;
 }
 
 void EINT0_IRQHandler(void){
