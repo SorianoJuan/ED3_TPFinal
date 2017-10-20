@@ -5,3 +5,4 @@ Debug/
 **/.idea
 **/py_chess/*.iml
 **/chess.ini_venv/
+**/__pycache__/
