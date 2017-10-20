@@ -3,18 +3,22 @@
 #endif
 #include <cr_section_macros.h>
 
+#include <stdlib.h>
+
 #include "direcciones.h"
 #include "pins.h"
 #include "timer.h"
 #include "adc.h"
 #include "uart.h"
 
-void config(void);
+struct jugador{
+	unsigned int tiempo;
+	unsigned int rgb[3];
+}jugador_uno, jugador_dos, *jugador_actual;
 
 static unsigned int display0 = 0;
 static unsigned int display1 = 0;
 static unsigned int display2 = 9;
-static unsigned int tiempo = 900;
 static unsigned int mux = 1;
 
 static unsigned int tabla[]= {
@@ -29,8 +33,12 @@ static unsigned int tabla[]= {
 					0x00000080,		//8 - 10000000
 					0x00000090};	//9 - 10010000
 
+void setear_jugadores(void);
+void config(void);
 
 int main(void) {
+
+	setear_jugadores();
 	config();
 
 	while(1) {
@@ -38,7 +46,24 @@ int main(void) {
     return 0;
 }
 
-
+void setear_jugadores(void) {
+	//jugador_uno
+	jugador_uno.rgb[0]=1;
+	jugador_uno.rgb[1]=0;
+	jugador_uno.rgb[2]=1;
+	jugador_uno.tiempo=900;
+	//jugador_dos
+	jugador_dos.rgb[0]=0;
+	jugador_dos.rgb[1]=0;
+	jugador_dos.rgb[2]=1;
+	jugador_dos.tiempo=900;
+	//turno inicial
+	if(rand() % 2){
+		jugador_actual=&jugador_uno;
+	}else{
+		jugador_actual=&jugador_dos;
+	}
+}
 
 void config(void){
 	//Pins
@@ -59,10 +84,10 @@ void config(void){
 
 void TIMER0_IRQHandler (void){
 	if (*T0IR & 1){					//INTRP por MR0
-		tiempo--;
-		display0=~tabla[tiempo%10];
-		display1=~tabla[(tiempo/10)%10];
-		display2=~tabla[(tiempo/100)%10];
+		jugador_actual->tiempo--;
+		display0=~tabla[jugador_actual->tiempo%10];
+		display1=~tabla[(jugador_actual->tiempo/10)%10];
+		display2=~tabla[(jugador_actual->tiempo/100)%10];
 
 	}
 		*T0IR = (1<<1);				//Bajar INTRP de MR1
