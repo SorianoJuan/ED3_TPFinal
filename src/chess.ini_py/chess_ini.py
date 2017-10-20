@@ -16,22 +16,31 @@ squares = [
     [chess.BB_A7, chess.BB_B7, chess.BB_C7, chess.BB_D7, chess.BB_E7, chess.BB_F7, chess.BB_G7, chess.BB_H7],
     [chess.BB_A8, chess.BB_B8, chess.BB_C8, chess.BB_D8, chess.BB_E8, chess.BB_F8, chess.BB_G8, chess.BB_H8],
 ]
-img_svg.set_svg(chess.svg.board(board))
+par = (0, 0)
+img_svg.set_svg(chess.svg.board(board=board, squares=chess.SquareSet(squares[par[1]][par[0]])))
 legal = board.legal_moves
 while True:
     act = input(">> ")
     if act == 'q':
         modified.set()
         break
+    elif act == 'a':
+        par = (par[0] - 1, par[1]) if par[0] > 0 else (0, par[1])
+    elif act == 'd':
+        par = (par[0] + 1, par[1]) if par[0] < 8 else (8, par[1])
+    elif act == 'w':
+        par = (par[0], par[1] + 1) if par[1] < 8 else (par[0], 8)
+    elif act == 's':
+        par = (par[0], par[1] - 1) if par[1] > 0 else (par[0], 0)
     else:
         act = chess.Move.from_uci(act)
         try:
             if act in legal:
                 board.push(act)
-                img_svg.set_svg(chess.svg.board(board=board, squares=chess.SquareSet(squares[0][0])))
-                modified.set()
             else:
                 raise ValueError
         except ValueError:
             print("Nope")
 
+    img_svg.set_svg(chess.svg.board(board=board, squares=chess.SquareSet(squares[par[1]][par[0]])))
+    modified.set()
