@@ -16,7 +16,10 @@ squares = [
     [chess.BB_A7, chess.BB_B7, chess.BB_C7, chess.BB_D7, chess.BB_E7, chess.BB_F7, chess.BB_G7, chess.BB_H7],
     [chess.BB_A8, chess.BB_B8, chess.BB_C8, chess.BB_D8, chess.BB_E8, chess.BB_F8, chess.BB_G8, chess.BB_H8],
 ]
-par = (0, 0)
+par_white = [0, 0]
+par_black = [7, 7]
+par = par_white
+mov = list()
 img_svg.set_svg(chess.svg.board(board=board, squares=chess.SquareSet(squares[par[1]][par[0]])))
 legal = board.legal_moves
 while True:
@@ -25,22 +28,27 @@ while True:
         modified.set()
         break
     elif act == 'a':
-        par = (par[0] - 1, par[1]) if par[0] > 0 else (0, par[1])
+        par[0] = par[0] - 1 if par[0] > 0 else 0
     elif act == 'd':
-        par = (par[0] + 1, par[1]) if par[0] < 8 else (8, par[1])
+        par[0] = par[0] + 1 if par[0] < 7 else 7
     elif act == 'w':
-        par = (par[0], par[1] + 1) if par[1] < 8 else (par[0], 8)
+        par[1] = par[1] + 1 if par[1] < 7 else 7
     elif act == 's':
-        par = (par[0], par[1] - 1) if par[1] > 0 else (par[0], 0)
-    else:
-        act = chess.Move.from_uci(act)
-        try:
-            if act in legal:
-                board.push(act)
-            else:
-                raise ValueError
-        except ValueError:
-            print("Nope")
+        par[1] = par[1] - 1 if par[1] > 0 else 0
+    elif act == ' ':
+        mov.append(list(chess.SquareSet(squares[par[1]][par[0]]))[0])
+        if len(mov) == 2:
+            try:
+                mov = chess.Move(mov[0], mov[1])
+                if mov in legal:
+                    board.push(mov)
+                    mov = list()
+                    par = par_black if par is par_white else par_white
+                else:
+                    raise ValueError
+            except ValueError:
+                mov = list()
+                print("Nope")
 
     img_svg.set_svg(chess.svg.board(board=board, squares=chess.SquareSet(squares[par[1]][par[0]])))
     modified.set()
