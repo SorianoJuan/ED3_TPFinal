@@ -2,6 +2,10 @@ import threading
 import chess.svg
 from chess_ini_GUI import GUI, modified, img_svg
 
+
+def wait_input():
+    return input(">> ")
+
 t = threading.Thread(target=GUI)
 t.start()
 
@@ -19,11 +23,17 @@ squares = [
 par_white = [0, 0]
 par_black = [7, 7]
 par = par_white
+square = None
 mov = list()
 img_svg.set_svg(chess.svg.board(board=board, squares=chess.SquareSet(squares[par[1]][par[0]])))
 legal = board.legal_moves
 while True:
-    act = input(">> ")
+
+    if board.is_game_over():
+        print("GAMEEEE OVERRRRR BITCH!")
+        break
+
+    act = wait_input()
     if act == 'q':
         modified.set()
         break
@@ -36,9 +46,11 @@ while True:
     elif act == 's':
         par[1] = par[1] - 1 if par[1] > 0 else 0
     elif act == ' ':
-        mov.append(list(chess.SquareSet(squares[par[1]][par[0]]))[0])
-        if len(mov) == 2:
-            try:
+        square = list(chess.SquareSet(squares[par[1]][par[0]]))[0]
+        mov.append(square)
+        try:
+            if len(mov) == 2:
+                square = None
                 mov = chess.Move(mov[0], mov[1])
                 if mov in legal:
                     board.push(mov)
@@ -46,9 +58,13 @@ while True:
                     par = par_black if par is par_white else par_white
                 else:
                     raise ValueError
-            except ValueError:
+            else:
+                if board.piece_at(square) is None:
+                    square = None
+                    raise ValueError
+        except ValueError:
                 mov = list()
                 print("Nope")
 
-    img_svg.set_svg(chess.svg.board(board=board, squares=chess.SquareSet(squares[par[1]][par[0]])))
+    img_svg.set_svg(chess.svg.board(board=board, squares=chess.SquareSet(squares[par[1]][par[0]]), check=square))
     modified.set()
