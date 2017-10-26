@@ -47,6 +47,7 @@ unsigned int volatile *const EXTINT = (unsigned int*) AddrEXTINT;
 //ADC
 unsigned int volatile *const AD0CR = (unsigned int*) AddrAD0CR;
 unsigned int volatile *const AD0DR0 = (unsigned int*) AddrAD0DR0;
+unsigned int volatile *const AD0DR1 = (unsigned int*) AddrAD0DR1;
 unsigned int volatile *const PINMODE1 = (unsigned int*) AddrPINMODE1;
 unsigned int volatile *const AD0INTEN = (unsigned int*) AddrAD0INTEN;
 unsigned int volatile *const AD0GDR = (unsigned int*) AddrAD0GDR;

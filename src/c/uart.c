@@ -13,3 +13,8 @@ void uart_config (void){
 	*PINMODE0 |= 0x8;				//Dejar al aire RX
 	*U3IER |= 0x1;					//Setea que se produzca una interrupcion
 }
+
+void uart_enviardato (char a){
+	while((*U3LSR&(1<<5))==0){}		//Esta transmitiendo, entonces esperar
+	*U3THR=a;
+}
