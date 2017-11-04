@@ -33,9 +33,6 @@ struct jugador{
 	unsigned int rgb[3];
 }jugador_uno, jugador_dos, *jugador_actual;
 
-static unsigned int display0 = 0;
-static unsigned int display1 = 0;
-static unsigned int display2 = 9;
 static unsigned int mux = 1;
 
 static int adc_threshold_low1 = 0x000fffff;
@@ -43,7 +40,7 @@ static int adc_threshold_low2 = 0x0fffffff;
 static int adc_threshold_high1 =0x000fffff;
 static int adc_threshold_high2 =0x0fffffff;
 
-static unsigned int tabla[]= {
+unsigned int tabla[]= {
 					0x000000c0,		//0 - 11000000
 			  	  	0x000000f9,		//1 - 11111001
 					0x000000a4,		//2 - 10100100
@@ -54,6 +51,10 @@ static unsigned int tabla[]= {
 					0x000000f8,		//7 - 11111000
 					0x00000080,		//8 - 10000000
 					0x00000090};	//9 - 10010000
+
+static unsigned int display0 = 1;
+static unsigned int display1 = 2;
+static unsigned int display2 = 3;
 
 void setear_jugadores(void);
 void leer_joystick(void);
@@ -69,7 +70,7 @@ int main(void) {
 
 	while(1) {
 		//Delay
-		leer_joystick();
+		//leer_joystick();
     }
     return 0;
 }
@@ -142,12 +143,12 @@ void config(void){
 	//UART
 	uart_config();
 	//NVIC
-	*ISER0 |= (1<<8);				//Habilita la interrupcion de UART3
+	//*ISER0 |= (1<<8);				//Habilita la interrupcion de UART3
 	*ISER0 |= (1<<1);				//Habilita las interrupciones de Timer0
 	*ISER0 |= (1<<2);				//Habilita las interrupciones de Timer1
-	*ISER0 |= (1<<18);				//INTRP por EINT0
-	*ISER0 |= (1<<21);				//INTRP por EINT3 (GPIO)
-	*ISER0 |= (1<<22);				//INTRP por ADC
+	//*ISER0 |= (1<<18);				//INTRP por EINT0
+	//*ISER0 |= (1<<21);				//INTRP por EINT3 (GPIO)
+	//*ISER0 |= (1<<22);				//INTRP por ADC
 }
 
 void TIMER0_IRQHandler (void){		//Contador de segundos
@@ -163,25 +164,25 @@ void TIMER0_IRQHandler (void){		//Contador de segundos
 void TIMER1_IRQHandler (void){		//Multiplexado
 	//TODO REVISAR SINCRONIZACION
 	if(*T1IR & 1){
-		*FIO1CLR |= 7;					//Limpiar todos los multiplexados
+		*FIO1CLR |= (7<<20);					//Limpiar todos los multiplexados
 
 		if(mux==1){						//Cargar los valores en el puerto
-			*FIO2SET |= display0;
-			*FIO2CLR |= display0;
+			*FIO2SET &= ~tabla[display0];
+			*FIO2CLR |= tabla[display0];
 		}else if(mux==2){
-			*FIO2SET |= display1;
-			*FIO2CLR |= display1;
+			*FIO2SET &= ~tabla[display1];
+			*FIO2CLR |= tabla[display1];
 		}else{
-			*FIO2SET |= display2;
-			*FIO2CLR |= display2;
+			*FIO2SET &= ~tabla[display2];
+			*FIO2CLR |= tabla[display2];
 		}
+		*FIO1SET |= (mux<<20);
+		*FIO1CLR &= ~(mux<<20);
 		if(mux==4){						//Si mux es 100, resetearlo a 001
 			mux=1;
 		}else{
 			mux = (mux<<1);				//Desplazar el 1 de mux
 		}
-		*FIO1SET |= mux;
-		*FIO1CLR &= ~mux;
 	}
 	*T1IR |= 1;							//Bajar INTRP de T1-MR0
 }
