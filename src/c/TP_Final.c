@@ -52,9 +52,9 @@ unsigned int tabla[]= {
 					0x00000080,		//8 - 10000000
 					0x00000090};	//9 - 10010000
 
-static unsigned int display0 = 1;
-static unsigned int display1 = 2;
-static unsigned int display2 = 3;
+static unsigned int display0 = 0;
+static unsigned int display1 = 0;
+static unsigned int display2 = 9;
 
 void setear_jugadores(void);
 void leer_joystick(void);
@@ -65,8 +65,9 @@ void config(void);
 
 int main(void) {
 
-	setear_jugadores();
 	config();
+	setear_jugadores();
+
 
 	while(1) {
 		//Delay
@@ -76,12 +77,14 @@ int main(void) {
 }
 
 void refrescar_rgb(void){
-	*FIO2CLR |= ((jugador_actual->rgb[0])<<8);
-	*FIO2SET &= ~((jugador_actual->rgb[0])<<8);
-	*FIO2CLR |= ((jugador_actual->rgb[1])<<11);
-	*FIO2SET &= ~((jugador_actual->rgb[1])<<11);
-	*FIO2CLR |= ((jugador_actual->rgb[2])<<12);
-	*FIO2SET &= ~((jugador_actual->rgb[2])<<12);
+	*FIO2CLR = ((jugador_actual->rgb[0])<<8);
+	*FIO2SET = ((~jugador_actual->rgb[0] & 1)<<8);
+
+	*FIO2CLR = ((jugador_actual->rgb[1])<<11);
+	*FIO2SET = ((~jugador_actual->rgb[1] & 1)<<11);
+
+	*FIO2CLR = ((jugador_actual->rgb[2])<<12);
+	*FIO2SET = ((~jugador_actual->rgb[2] & 1)<<12);
 }
 
 void setear_jugadores(void) {
@@ -103,7 +106,7 @@ void setear_jugadores(void) {
 	}else{
 		jugador_actual=&jugador_dos;
 	}
-	refrescar_rgb();
+	//refrescar_rgb();
 }
 
 void leer_joystick(){
@@ -139,13 +142,17 @@ void config(void){
 	//Timer
 	timer_config();
 	//ADC
-	adc_config();
+	//adc_config();
 	//UART
-	uart_config();
+	//uart_config();
 	//NVIC
 	//*ISER0 |= (1<<8);				//Habilita la interrupcion de UART3
 	*ISER0 |= (1<<1);				//Habilita las interrupciones de Timer0
 	*ISER0 |= (1<<2);				//Habilita las interrupciones de Timer1
+	*T1TCR |= (1<<1);
+	*T1TCR &= ~(1<<1);
+	*T0TCR |= (1<<1);
+	*T0TCR &= ~(1<<1);
 	//*ISER0 |= (1<<18);				//INTRP por EINT0
 	//*ISER0 |= (1<<21);				//INTRP por EINT3 (GPIO)
 	//*ISER0 |= (1<<22);				//INTRP por ADC
@@ -154,9 +161,9 @@ void config(void){
 void TIMER0_IRQHandler (void){		//Contador de segundos
 	if (*T0IR & 1){					//INTRP por MR0
 		jugador_actual->tiempo--;
-		display0=~tabla[jugador_actual->tiempo%10];
-		display1=~tabla[(jugador_actual->tiempo/10)%10];
-		display2=~tabla[(jugador_actual->tiempo/100)%10];
+		display0=jugador_actual->tiempo%10;
+		display1=(jugador_actual->tiempo/10)%10;
+		display2=(jugador_actual->tiempo/100)%10;
 	}
 	*T0IR |=1;						//Bajar INTRP de T1-MR0
 }
@@ -164,20 +171,20 @@ void TIMER0_IRQHandler (void){		//Contador de segundos
 void TIMER1_IRQHandler (void){		//Multiplexado
 	//TODO REVISAR SINCRONIZACION
 	if(*T1IR & 1){
-		*FIO1CLR |= (7<<20);					//Limpiar todos los multiplexados
+		*FIO1SET = (7<<20);					//Limpiar todos los multiplexados
 
 		if(mux==1){						//Cargar los valores en el puerto
-			*FIO2SET &= ~tabla[display0];
-			*FIO2CLR |= tabla[display0];
+			*FIO2SET = ~tabla[display0];
+			*FIO2CLR = tabla[display0];
 		}else if(mux==2){
-			*FIO2SET &= ~tabla[display1];
-			*FIO2CLR |= tabla[display1];
+			*FIO2SET = ~tabla[display1];
+			*FIO2CLR = tabla[display1];
 		}else{
-			*FIO2SET &= ~tabla[display2];
-			*FIO2CLR |= tabla[display2];
+			*FIO2SET = ~tabla[display2];
+			*FIO2CLR = tabla[display2];
 		}
-		*FIO1SET |= (mux<<20);
-		*FIO1CLR &= ~(mux<<20);
+		*FIO1SET = ~(mux<<20);
+		*FIO1CLR = (mux<<20);
 		if(mux==4){						//Si mux es 100, resetearlo a 001
 			mux=1;
 		}else{
