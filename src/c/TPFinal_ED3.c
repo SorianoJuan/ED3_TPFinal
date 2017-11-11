@@ -171,7 +171,38 @@ void leer_joystick(){
 }
 
 void buzzer (char a){
+	int frec;
+	int duracion;
+	int x;
+	int state = 0;
+	switch(a){
+		case 'w':
+			frec = 400;
+			break;
+		case 'k':
+			frec = 2000;
+			break;
+		case 'm':
+			frec = 1000;
+			break;
+		default:
+			frec = 0
+			break;
+	}
 
+	duracion = 1000;
+
+	while((x < duracion) && frec){
+		if(t_entry){
+			t_entry = 0;
+			x++;
+
+			if(!(x % (FREC_T1/frec))){
+				*FIO0SET = state << 5;
+				*FIO0CLR = ~state <<5;
+			}
+		}
+	}
 }
 
 void config(void){
