@@ -142,7 +142,6 @@ extern unsigned int volatile *const U3DLM;
 extern unsigned int volatile *const U3IER;
 extern unsigned int volatile *const U3RBR;
 extern unsigned int volatile *const U3THR;
-extern unsigned int volatile *const U3U3THR;
 extern unsigned int volatile *const U3LSR;
 //Otros
 extern unsigned int volatile *const PCONP;

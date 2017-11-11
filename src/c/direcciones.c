@@ -60,7 +60,6 @@ unsigned int volatile *const U3DLM = (unsigned int*) AddrU3DLM;
 unsigned int volatile *const U3IER = (unsigned int*) AddrU3IER;
 unsigned int volatile *const U3RBR = (unsigned int*) AddrU3RBR;
 unsigned int volatile *const U3THR = (unsigned int*) AddrU3THR;
-unsigned int volatile *const U3U3THR = (unsigned int*) AddrU3THR;
 unsigned int volatile *const U3LSR = (unsigned int*) AddrU3LSR;
 //Otros
 unsigned int volatile *const PCONP = (unsigned int*) AddrPCONP;

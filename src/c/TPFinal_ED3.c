@@ -1,3 +1,4 @@
+
 /* Timer0: contador de segundos
  * Timer1: multiplexado de displays
  * ADC: modulo joystick
@@ -27,11 +28,11 @@
 #include "adc.h"
 #include "uart.h"
 
-#define adc_threshold_low1  0x000fffff
-#define adc_threshold_low2  0x0fffffff
-#define adc_threshold_high1 0x000fffff
-#define adc_threshold_high2 0x0fffffff
-#define DELAY 1000
+#define adc_threshold_low1  16
+#define adc_threshold_low2  500
+#define adc_threshold_high1 3500
+#define adc_threshold_high2 4080
+#define DELAY 1000000
 
 
 struct jugador{
@@ -77,7 +78,7 @@ int main(void) {
 	while(1) {
 
     if(read_joystick){
-      leer_joystick();
+    	leer_joystick();
     }else{
       i++;
       if(i > DELAY){
@@ -124,8 +125,8 @@ void setear_jugadores(void) {
 }
 
 void leer_joystick(){
-	int read_channel0 = 0xfff & (*AD0DR0 >> 4);		//Tomo los 12 bits del canal 0
-	int read_channel1 = 0xfff & (*AD0DR1 >> 4);		//Tomo los 12 bits del canal 1
+	int read_channel0 = 0xfff & (*AD0DR0 >> 4);		//IZQ/DER
+	int read_channel1 = 0xfff & (*AD0DR1 >> 4);		//UP/DOWN
 			if(read_channel0<adc_threshold_low2){
 				uart_enviardato('a');		//Doble velocidad down
         read_joystick = 0;
@@ -168,7 +169,7 @@ void config(void){
 	//UART
 	uart_config();
 	//NVIC
-	*ISER0 |= (1<<8);				//Habilita la interrupcion de UART3
+	 *ISER0 |= (1<<8);				//Habilita la interrupcion de UART3
   //	*ISER0 |= (1<<1);				//Habilita las interrupciones de Timer0
   //	*ISER0 |= (1<<2);				//Habilita las interrupciones de Timer1
   //	*T1TCR |= (1<<1);
@@ -241,7 +242,7 @@ void EINT3_IRQHandler(void){			//intrp por par emisor-receptor
 void UART3_IRQHandler(void){
 	char k=*U3RBR;
 	while((*U3LSR&(1<<5))==0){}		//Esta transmitiendo, entonces esperar
-	*U3THR=k;
+	*U3THR='a';
 }
 /*
 void ADC0_IRQHandler(void){
