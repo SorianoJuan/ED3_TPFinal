@@ -37,11 +37,15 @@
 #define FREC_T1 2000
 
 
-struct jugador{
+typedef struct jugador{
 	unsigned int id;
 	unsigned int tiempo;
 	unsigned int rgb[3];
-}jugador_uno, jugador_dos, *jugador_actual;
+}jugador;
+
+static jugador jugador_uno;
+static jugador jugador_dos;
+static jugador * jugador_actual;
 
 static unsigned int mux = 1;
 
@@ -64,6 +68,8 @@ static unsigned int display2 = 9;
 static unsigned int read_joystick = 1;
 static int bub = 0;
 static int t_entry=0;
+static char buzz=0;
+static unsigned int rebote = 0;
 
 void setear_jugadores(void);
 void leer_joystick(void);
@@ -74,24 +80,25 @@ int  mediana(int*, int);
 
 
 int main(void) {
-
 	config();
-	setear_jugadores();
     int i = 0;
 
 	while(1) {
-		buzzer('w');
-    if(read_joystick){
-    	leer_joystick();
-    }else{
-      i++;
-      if(i > DELAY){
-        read_joystick = 1;
-        i = 0;
-      }
-    }
+		if(buzz){
+			buzzer(buzz);
+			buzz=0;
+		}
+		if(read_joystick){
+			leer_joystick();
+		}else{
+			i++;
+			if(i > DELAY){
+				read_joystick = 1;
+				i = 0;
+			}
+		}
 
-  }
+	}
     return 0;
 }
 
@@ -102,8 +109,8 @@ void refrescar_rgb(void){
 	*FIO2CLR = ((jugador_actual->rgb[1])<<11);
 	*FIO2SET = ((~jugador_actual->rgb[1] & 1)<<11);
 
-	*FIO2CLR = ((jugador_actual->rgb[2])<<12);
-	*FIO2SET = ((~jugador_actual->rgb[2] & 1)<<12);
+	*FIO0CLR = ((jugador_actual->rgb[2])<<4);
+	*FIO0SET = ((~jugador_actual->rgb[2] & 1)<<4);
 }
 
 void setear_jugadores(void) {
@@ -111,12 +118,12 @@ void setear_jugadores(void) {
 	jugador_uno.id=1;
 	jugador_uno.rgb[0]=1;
 	jugador_uno.rgb[1]=0;
-	jugador_uno.rgb[2]=1;
+	jugador_uno.rgb[2]=0;
 	jugador_uno.tiempo=900;
 	//jugador_dos
 	jugador_dos.id=2;
 	jugador_dos.rgb[0]=0;
-	jugador_dos.rgb[1]=1;
+	jugador_dos.rgb[1]=0;
 	jugador_dos.rgb[2]=1;
 	jugador_dos.tiempo=900;
 	//turno inicial
@@ -210,6 +217,7 @@ void buzzer (char a){
 void config(void){
 	//Pins
 	pins_config();
+	setear_jugadores();
 	//Timer
 	timer_config();
 	//ADC
@@ -217,15 +225,21 @@ void config(void){
 	//UART
 	uart_config();
 	//NVIC
-	 *ISER0 |= (1<<8);				//Habilita la interrupcion de UART3
-//  	*ISER0 |= (1<<1);				//Habilita las interrupciones de Timer0
-  	*ISER0 |= (1<<2);				//Habilita las interrupciones de Timer1
-  	*T1TCR |= (1<<1);
-  	*T1TCR &= ~(1<<1);
+	*ISER0 |= (1<<8);				//Habilita la interrupcion de UART3
+
   	*T0TCR |= (1<<1);
   	*T0TCR &= ~(1<<1);
+  	*T0IR |=1;
+	*ISER0 |= (1<<1);
+
+  	*T1TCR |= (1<<1);
+  	*T1TCR &= ~(1<<1);
+  	*T1IR |=1;
+  	*ISER0 |= (1<<2);				//Habilita las interrupciones de Timer1
+
 	*ISER0 |= (1<<18);				//INTRP por EINT0
-	//*ISER0 |= (1<<21);				//INTRP por EINT3 (GPIO)
+	*ISER0 |= (1<<20);				//INTRP por EINT2
+	//*ISER0 |= (1<<21);			//INTRP por EINT3 (GPIO)
 	//ISER0 |= (1<<22);				//INTRP por ADC
 }
 
@@ -241,21 +255,29 @@ void TIMER0_IRQHandler (void){		//Contador de segundos
 
 void TIMER1_IRQHandler (void){		//Multiplexado
 	//TODO REVISAR SINCRONIZACION
+	if(!(*ISER0 & (1<<20))){//Antirebote
+			rebote++;
+			if(rebote>600){
+				*EXTINT |= (1<<2);
+				*ISER0 |= (1<<20);
+				rebote = 0;
+			}
+	}
 	if(*T1IR & 1){
 		t_entry=1;
 		*FIO1SET = (7<<20);					//Limpiar todos los multiplexados
 
 		if(mux==1){						//Cargar los valores en el puerto
-			*FIO2SET = ~tabla[display0];
+			*FIO2SET = ~tabla[display0]&(0x7f);
 			*FIO2CLR = tabla[display0];
 		}else if(mux==2){
-			*FIO2SET = ~tabla[display1];
+			*FIO2SET = ~tabla[display1]&(0x7f);
 			*FIO2CLR = tabla[display1];
 		}else{
-			*FIO2SET = ~tabla[display2];
+			*FIO2SET = ~tabla[display2]&(0x7f);
 			*FIO2CLR = tabla[display2];
 		}
-		*FIO1SET = ~(mux<<20);
+		*FIO1SET = ((~mux & 3)<<20);
 		*FIO1CLR = (mux<<20);
 		if(mux==4){						//Si mux es 100, resetearlo a 001
 			mux=1;
@@ -274,16 +296,18 @@ void EINT0_IRQHandler(void){			//pulsador
 	*EXTINT |= 1;
 }
 
-void EINT3_IRQHandler(void){			//intrp por par emisor-receptor
-	if(*EXTINT & (1<<3)){				//Interrupcion GPIO P2.4
+void EINT2_IRQHandler(void){
+	if(*EXTINT & (1<<2)){				//Interrupcion GPIO P2.4
 		if(jugador_actual->id==1){		//Cambiar de turno
 			jugador_actual=&jugador_dos;
 		}else{
 			jugador_actual=&jugador_uno;
 		}
 		refrescar_rgb();
+		buzz = 'k';
 	}
-	*EXTINT |= (1<<3);
+	*EXTINT |= (1<<2);
+	*ICER0 = 1<<20;
 }
 
 void UART3_IRQHandler(void){
@@ -308,17 +332,3 @@ int mediana(int *array, int muestras){
   }
   return array[(muestras-1)/2];
 }
-/*
-void ADC0_IRQHandler(void){
-	if (*AD0DR0 & (1<<31)){
-	int read = 0xfff & (*AD0GDR >> 4);		//Tomo los 12 bits
-		if (read>adc_threshold2){
-			while((*U3LSR&(1<<5))==0){}		//Esta transmitiendo, entonces esperar
-			*U3THR='a';						//Doble velocidad
-		}else if (read>adc_threshold1){
-			while((*U3LSR&(1<<5))==0){}		//Esta transmitiendo, entonces esperar
-			*U3THR='b';						//Velocidad simple
-		}
-	}
-	*AD0CR |= (1<<24);						//START NOW
-}*/

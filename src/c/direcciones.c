@@ -55,6 +55,7 @@ unsigned int volatile *const AD0INTEN = (unsigned int*) AddrAD0INTEN;
 unsigned int volatile *const AD0GDR = (unsigned int*) AddrAD0GDR;
 //NVIC
 unsigned int volatile *const ISER0 = (unsigned int*) AddrISER0;
+unsigned int volatile *const ICER0 = (unsigned int*) AddrICER0;
 //UART
 unsigned int volatile *const U3LCR = (unsigned int*) AddrU3LCR;
 unsigned int volatile *const U3DLL = (unsigned int*) AddrU3DLL;

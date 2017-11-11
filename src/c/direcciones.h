@@ -78,6 +78,7 @@
 #define AddrU3LSR 			0x4009C014	//
 //NVIC
 #define AddrISER0  			0xE000E100
+#define AddrICER0			0xE000E180
 //Otros
 #define AddrPCLKSEL0		0x400FC1A8	//Para ADC
 #define AddrPCONP			0x400FC0C4	//Prender UART3
@@ -139,6 +140,7 @@ extern unsigned int volatile *const AD0INTEN;
 extern unsigned int volatile *const AD0GDR;
 //NVIC
 extern unsigned int volatile *const ISER0;
+extern unsigned int volatile *const ICER0;
 //UART
 extern unsigned int volatile *const U3LCR;
 extern unsigned int volatile *const U3DLL;
