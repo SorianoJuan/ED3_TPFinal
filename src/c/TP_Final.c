@@ -27,6 +27,13 @@
 #include "adc.h"
 #include "uart.h"
 
+#define adc_threshold_low1  0x000fffff
+#define adc_threshold_low2  0x0fffffff
+#define adc_threshold_high1 0x000fffff
+#define adc_threshold_high2 0x0fffffff
+#define DELAY 1000
+
+
 struct jugador{
 	unsigned int id;
 	unsigned int tiempo;
@@ -35,10 +42,6 @@ struct jugador{
 
 static unsigned int mux = 1;
 
-static int adc_threshold_low1 = 0x000fffff;
-static int adc_threshold_low2 = 0x0fffffff;
-static int adc_threshold_high1 =0x000fffff;
-static int adc_threshold_high2 =0x0fffffff;
 
 unsigned int tabla[]= {
 					0x000000c0,		//0 - 11000000
@@ -55,6 +58,8 @@ unsigned int tabla[]= {
 static unsigned int display0 = 0;
 static unsigned int display1 = 0;
 static unsigned int display2 = 9;
+static unsigned int read_joystick = 1;
+static unsigned int i = 0;
 
 void setear_jugadores(void);
 void leer_joystick(void);
@@ -66,13 +71,22 @@ void config(void);
 int main(void) {
 
 	config();
-	setear_jugadores();
+	//setear_jugadores();
 
 
 	while(1) {
-		//Delay
-		//leer_joystick();
+
+    if(read_joystick){
+      leer_joystick();
+    }else{
+      i++;
+      if(i > DELAY){
+        read_joystick = 1;
+        i = 0;
+      }
     }
+
+  }
     return 0;
 }
 
@@ -114,21 +128,29 @@ void leer_joystick(){
 	int read_channel1 = 0xfff & (*AD0DR1 >> 4);		//Tomo los 12 bits del canal 1
 			if(read_channel0<adc_threshold_low2){
 				uart_enviardato('a');		//Doble velocidad down
+        read_joystick = 0;
 			}else if ((read_channel0>adc_threshold_low2) && (read_channel0<adc_threshold_low1)){
 				uart_enviardato('b');		//Simple velocidad down
+        read_joystick = 0;
 			}else if (read_channel0>adc_threshold_high2){
 				uart_enviardato('c');		//Doble velocidad up
+        read_joystick = 0;
 			}else if ((read_channel0>adc_threshold_high1) && (read_channel0<adc_threshold_high2)){
 				uart_enviardato('d');		//Simple velocidad up
+        read_joystick = 0;
 			}
 			if(read_channel1<adc_threshold_low2){
 				uart_enviardato('e');		//Doble velocidad izq
+        read_joystick = 0;
 			}else if ((read_channel1>adc_threshold_low2) && (read_channel1<adc_threshold_low1)){
 				uart_enviardato('f');		//Simple velocidad izq
+        read_joystick = 0;
 			}else if (read_channel1>adc_threshold_high2){
 				uart_enviardato('g');		//Doble velocidad der
+        read_joystick = 0;
 			}else if ((read_channel1>adc_threshold_high1) && (read_channel1<adc_threshold_high2)){
 				uart_enviardato('h');		//Simple velocidad der
+        read_joystick = 0;
 			}
 }
 
@@ -140,22 +162,22 @@ void config(void){
 	//Pins
 	pins_config();
 	//Timer
-	timer_config();
+	//timer_config();
 	//ADC
-	//adc_config();
+	adc_config();
 	//UART
-	//uart_config();
+	uart_config();
 	//NVIC
-	//*ISER0 |= (1<<8);				//Habilita la interrupcion de UART3
-	*ISER0 |= (1<<1);				//Habilita las interrupciones de Timer0
-	*ISER0 |= (1<<2);				//Habilita las interrupciones de Timer1
-	*T1TCR |= (1<<1);
-	*T1TCR &= ~(1<<1);
-	*T0TCR |= (1<<1);
-	*T0TCR &= ~(1<<1);
+	*ISER0 |= (1<<8);				//Habilita la interrupcion de UART3
+  //	*ISER0 |= (1<<1);				//Habilita las interrupciones de Timer0
+  //	*ISER0 |= (1<<2);				//Habilita las interrupciones de Timer1
+  //	*T1TCR |= (1<<1);
+  //	*T1TCR &= ~(1<<1);
+  //	*T0TCR |= (1<<1);
+  //	*T0TCR &= ~(1<<1);
 	//*ISER0 |= (1<<18);				//INTRP por EINT0
 	//*ISER0 |= (1<<21);				//INTRP por EINT3 (GPIO)
-	//*ISER0 |= (1<<22);				//INTRP por ADC
+	//ISER0 |= (1<<22);				//INTRP por ADC
 }
 
 void TIMER0_IRQHandler (void){		//Contador de segundos

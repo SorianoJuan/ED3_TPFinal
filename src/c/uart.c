@@ -1,4 +1,3 @@
-#include "direcciones.h"
 #include "uart.h"
 
 void uart_config (void){
@@ -14,7 +13,9 @@ void uart_config (void){
 	*U3IER |= 0x1;					//Setea que se produzca una interrupcion
 }
 
+
 void uart_enviardato (char a){
 	while((*U3LSR&(1<<5))==0){}		//Esta transmitiendo, entonces esperar
 	*U3THR=a;
 }
+
