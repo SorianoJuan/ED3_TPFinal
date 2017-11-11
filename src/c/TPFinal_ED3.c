@@ -9,10 +9,8 @@
  * refrescar_rgb(): carga los valores RGB correspondientes
  * buzzer(char a): suena una melodía dependiendo del char enviado
  */
-//TODO: Revisar delay en el main para lectura del ADC
-//TODO: Revisar frecuencia del ADC
-//TODO: Revisar sincronización del Timer1
-//TODO: buzzer(char a), la implementacion y discutir el funcionamiento
+//TODO: Par emisor receptor
+//TODO: Funcion motor
 
 
 #ifdef __USE_CMSIS
@@ -70,11 +68,13 @@ static int bub = 0;
 static int t_entry=0;
 static char buzz=0;
 static unsigned int rebote = 0;
+static char motor=0;
 
 void setear_jugadores(void);
 void leer_joystick(void);
 void refrescar_rgb(void);
 void buzzer(char a);
+void vibrar_motor(char m);
 void config(void);
 int  mediana(int*, int);
 
@@ -87,6 +87,10 @@ int main(void) {
 		if(buzz){
 			buzzer(buzz);
 			buzz=0;
+		}
+		if(motor){
+			vibrar_motor(motor);
+			motor=0;
 		}
 		if(read_joystick){
 			leer_joystick();
@@ -212,6 +216,10 @@ void buzzer (char a){
 			}
 		}
 	}
+}
+
+void vibrar_motor (char m){
+
 }
 
 void config(void){

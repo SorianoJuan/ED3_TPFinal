@@ -6,6 +6,7 @@ void pins_config (void){
 	*FIO2DIR = 0x7F;				//7 segmentos del display
 	*FIO1DIR = (7<<20);				//3 pines de multiplexado
 	*FIO0DIR |= (3<<4);				//Buzzer + Blue
+	*FIO0DIR |= (1<<10);			//Motor
 	*FIO2DIR |= 0x900;				//3 salidas de LED RG sin B
 	//GPIO
 	//*IO0IntEnF |= 1;				//GPIO Interrupt por P0.0
