@@ -63,6 +63,8 @@
 #define AddrAD0CR 			0x40034000
 #define AddrAD0DR0 			0x40034010
 #define AddrAD0DR1 			0x40034014
+#define AddrAD0DR2 			0x40034018 //
+#define AddrAD0DR3 			0x4003401C
 #define AddrPINMODE1 		0x4002C044
 #define AddrAD0INTEN  		0x4003400C
 #define AddrAD0GDR 			0x40034004
@@ -130,6 +132,8 @@ extern unsigned int volatile *const EXTINT;
 extern unsigned int volatile *const AD0CR;
 extern unsigned int volatile *const AD0DR0;
 extern unsigned int volatile *const AD0DR1;
+extern unsigned int volatile *const AD0DR2;
+extern unsigned int volatile *const AD0DR3;
 extern unsigned int volatile *const PINMODE1;
 extern unsigned int volatile *const AD0INTEN;
 extern unsigned int volatile *const AD0GDR;
