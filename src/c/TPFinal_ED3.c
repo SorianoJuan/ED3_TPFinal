@@ -60,13 +60,13 @@ static unsigned int display0 = 0;
 static unsigned int display1 = 0;
 static unsigned int display2 = 9;
 static unsigned int read_joystick = 1;
-static unsigned int i = 0;
 
 void setear_jugadores(void);
 void leer_joystick(void);
 void refrescar_rgb(void);
 void buzzer(char a);
 void config(void);
+int  mediana(int*, int);
 
 
 int main(void) {
@@ -76,6 +76,8 @@ int main(void) {
 
 
 	while(1) {
+
+    int i = 0;
 
     if(read_joystick){
     	leer_joystick();
@@ -125,8 +127,21 @@ void setear_jugadores(void) {
 }
 
 void leer_joystick(){
-	int read_channel0 = 0xfff & (*AD0DR0 >> 4);		//IZQ/DER
-	int read_channel1 = 0xfff & (*AD0DR1 >> 4);		//UP/DOWN
+#define N_MUESTRAS 3
+  int i = 0;
+	int channel0[N_MUESTRAS-1];
+  int channel1[N_MUESTRAS-1];
+  int read_channel0;
+  int read_channel1;
+  if(i < N_MUESTRAS){
+    channel0[i] = 0xfff & (*AD0DR0 >> 4);		//IZQ/DER
+    channel1[i] = 0xfff & (*AD0DR1 >> 4);		//UP/DOWN
+    i++;
+    return;
+  }
+  read_channel1 = mediana(channel1, N_MUESTRAS);
+  read_channel0 = mediana(channel0, N_MUESTRAS);
+
 			if(read_channel0<adc_threshold_low2){
 				uart_enviardato('a');		//Doble velocidad down
         read_joystick = 0;
@@ -243,6 +258,23 @@ void UART3_IRQHandler(void){
 	char k=*U3RBR;
 	while((*U3LSR&(1<<5))==0){}		//Esta transmitiendo, entonces esperar
 	*U3THR='a';
+}
+
+int mediana(int *array, int muestras){
+  int aux;
+  int changed = 1;
+  while(changed){
+    changed = 0;
+    for(int i = 0; i < muestras - 2; i++){
+      if(array[i] > array[i+1]){
+        aux = array[i];
+        array[i] = array[i+1];
+        array[i+1] = aux;
+        changed = 1;
+      }
+    }
+  }
+  return array[(muestras-1)/2];
 }
 /*
 void ADC0_IRQHandler(void){
