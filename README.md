@@ -1,6 +1,6 @@
 # Python-chess controller 
 
-Trabajo Final de Electronica Digital 3
+Trabajo Final de Electronica Digital 3 - FCEFyN - UNC
 
 ## Introduccion
 
@@ -31,12 +31,15 @@ La idea del proyecto es armar un módulo “joystick” utilizando la placa Nxp 
 7. El buzzer indicará el final de la partida, ya sea porque un jugador ha agotado su tiempo o porque la partida ha finalizado. Además, indicará cualquier error, ya sea de movimiento inválido o demás.  
 
 ![elementos](docs/img/elements.png)
+
 *Modulo joystick, pulsador, led RGB y buzzer*
 
 ![e-r](docs/img/emisor-receptor.png)
+
 *Par emisor-receptor*
 
 ![py-chess](docs/img/python-chess.png)
+
 *SVG generado por python-chess*
 
 # Autores
