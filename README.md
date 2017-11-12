@@ -44,5 +44,5 @@ La idea del proyecto es armar un módulo “joystick” utilizando la placa Nxp 
 
 # Autores
 
-* [Juan Soriano](www.github.com/SorianoJuan)
-* [Ivan Vignolles](www.github.com/ivanvig)
+* [Juan Soriano](https://www.github.com/SorianoJuan)
+* [Ivan Vignolles](https://www.github.com/ivanvig)
