@@ -42,6 +42,8 @@ while True:
     if act == 'q':
         modified.set()
         break
+    elif act == 'p':
+        par = par_black if par is par_white else par_white
     elif act == 'a':
         par[0] = par[0] - 1 if par[0] > 0 else 0
     elif act == 'd':
@@ -64,7 +66,6 @@ while True:
 
                     board.push(mov)
                     mov = list()
-                    par = par_black if par is par_white else par_white
                 else:
                     raise ValueError
             else:

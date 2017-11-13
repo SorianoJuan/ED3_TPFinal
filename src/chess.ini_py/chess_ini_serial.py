@@ -43,7 +43,8 @@ def listen():
             d='a',		# lento izq
             a='d',		# rapido der
             b='d',		# lento der
-            z=' '		# seleccionar
+            z=' ',		# seleccionar
+            p='p'       # paso de turno
         )
     while True:
         instruccion = ser.read(translate['pkgsize'])
