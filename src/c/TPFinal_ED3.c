@@ -68,13 +68,13 @@ static int bub = 0;
 static int t_entry=0;
 static char buzz=0;
 static unsigned int rebote = 0;
-static char motor=0;
+static unsigned int eint_rebote = 0;
+static unsigned motor=0;
 
 void setear_jugadores(void);
 void leer_joystick(void);
 void refrescar_rgb(void);
 void buzzer(char a);
-void vibrar_motor(char m);
 void config(void);
 int  mediana(int*, int);
 
@@ -87,10 +87,6 @@ int main(void) {
 		if(buzz){
 			buzzer(buzz);
 			buzz=0;
-		}
-		if(motor){
-			vibrar_motor(motor);
-			motor=0;
 		}
 		if(read_joystick){
 			leer_joystick();
@@ -218,10 +214,6 @@ void buzzer (char a){
 	}
 }
 
-void vibrar_motor (char m){
-
-}
-
 void config(void){
 	//Pins
 	pins_config();
@@ -247,8 +239,6 @@ void config(void){
 
 	*ISER0 |= (1<<18);				//INTRP por EINT0
 	*ISER0 |= (1<<20);				//INTRP por EINT2
-	//*ISER0 |= (1<<21);			//INTRP por EINT3 (GPIO)
-	//ISER0 |= (1<<22);				//INTRP por ADC
 }
 
 void TIMER0_IRQHandler (void){		//Contador de segundos
@@ -257,17 +247,22 @@ void TIMER0_IRQHandler (void){		//Contador de segundos
 		display0=jugador_actual->tiempo%10;
 		display1=(jugador_actual->tiempo/10)%10;
 		display2=(jugador_actual->tiempo/100)%10;
+		if(motor){
+			*FIO0CLR = (1<<10);
+			motor = 0;
+		}else{
+			*FIO0SET = (1<<10);
+		}
 	}
 	*T0IR |=1;						//Bajar INTRP de T1-MR0
 }
 
 void TIMER1_IRQHandler (void){		//Multiplexado
-	//TODO REVISAR SINCRONIZACION
-	if(!(*ISER0 & (1<<20))){//Antirebote
+	if(!(*ISER0 & (1<<18)) || !(*ISER0 &(1<<20))){//Antirebote
 			rebote++;
 			if(rebote>600){
-				*EXTINT |= (1<<2);
-				*ISER0 |= (1<<20);
+				*EXTINT |= (1<<(0+eint_rebote));
+				*ISER0 |= (1<<(18+eint_rebote));
 				rebote = 0;
 			}
 	}
@@ -301,11 +296,13 @@ void EINT0_IRQHandler(void){			//pulsador
 		while((*U3LSR&(1<<5))==0){}		//Esta transmitiendo, entonces esperar
 		*U3THR='z';
 	}
+	eint_rebote = 0;
 	*EXTINT |= 1;
+	*ICER0 = 1<<18;
 }
 
 void EINT2_IRQHandler(void){
-	if(*EXTINT & (1<<2)){				//Interrupcion GPIO P2.4
+	if(*EXTINT & (1<<2)){
 		if(jugador_actual->id==1){		//Cambiar de turno
 			jugador_actual=&jugador_dos;
 		}else{
@@ -313,15 +310,17 @@ void EINT2_IRQHandler(void){
 		}
 		refrescar_rgb();
 		buzz = 'k';
+		eint_rebote = 2;
 	}
 	*EXTINT |= (1<<2);
 	*ICER0 = 1<<20;
 }
 
 void UART3_IRQHandler(void){
+	motor = 1;
 	char k=*U3RBR;
-	while((*U3LSR&(1<<5))==0){}		//Esta transmitiendo, entonces esperar
-	*U3THR='a';
+	//while((*U3LSR&(1<<5))==0){}		//Esta transmitiendo, entonces esperar
+	//*U3THR='a';
 }
 
 int mediana(int *array, int muestras){
