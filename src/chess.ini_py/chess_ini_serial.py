@@ -3,30 +3,33 @@ from queue import Queue
 
 queue = Queue()
 
+ser = serial.Serial(
+    port='/dev/ttyUSB0',
+    baudrate=9600,
+    parity=serial.PARITY_NONE,
+    stopbits=serial.STOPBITS_ONE,
+    # timeout=10,
+    bytesize=serial.EIGHTBITS
+)
+
 
 def send_error():
-    ser.write(encode('e'))
+    ser.write('e'.encode())
+
 
 def send_finish():
-	ser.write(encode('f'))
+    ser.write('f'.encode())
+
 
 def send_k():
-	ser.write(encode('k'))
+    ser.write('k'.encode())
 
 
 def listen():
+
     aux = 0
     i = 0
-    lentos = ['f','h','d','b']
-
-    ser = serial.Serial(
-        port='/dev/ttyUSB0',
-        baudrate=9600,
-        parity=serial.PARITY_NONE,
-        stopbits=serial.STOPBITS_ONE,
-        # timeout=10,
-        bytesize=serial.EIGHTBITS
-    )
+    lentos = ['f', 'h', 'd', 'b']
 
     ser.isOpen()
 
@@ -48,9 +51,8 @@ def listen():
         if instruccion in translate.keys():
             print(">> ", instruccion)
 
-            if(instruccion is not aux):
+            if instruccion is not aux :
                 queue.put(translate[instruccion])
-                send_ok()
                 (aux, i) = (instruccion, 2) if instruccion in lentos else (0,0)
             else:
                 aux = 0 if i is 0 else aux

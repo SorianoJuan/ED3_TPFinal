@@ -58,6 +58,10 @@ while True:
                 square = None
                 mov = chess.Move(mov[0], mov[1])
                 if mov in legal:
+
+                    if board.is_capture(mov):
+                        send_k()
+
                     board.push(mov)
                     mov = list()
                     par = par_black if par is par_white else par_white
