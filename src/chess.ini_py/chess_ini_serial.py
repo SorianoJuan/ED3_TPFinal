@@ -21,8 +21,8 @@ def send_finish():
     ser.write('f'.encode())
 
 
-def send_k():
-    ser.write('k'.encode())
+def send_c():
+    ser.write('c'.encode())
 
 
 def listen():
@@ -51,7 +51,7 @@ def listen():
         if instruccion in translate.keys():
             print(">> ", instruccion)
 
-            if instruccion is not aux :
+            if instruccion is not aux:
                 queue.put(translate[instruccion])
                 (aux, i) = (instruccion, 2) if instruccion in lentos else (0,0)
             else:

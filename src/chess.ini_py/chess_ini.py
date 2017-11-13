@@ -60,7 +60,7 @@ while True:
                 if mov in legal:
 
                     if board.is_capture(mov):
-                        send_k()
+                        send_c()
 
                     board.push(mov)
                     mov = list()
