@@ -1,7 +1,7 @@
 import threading
 import chess.svg
 from chess_ini_GUI import GUI, modified, img_svg
-from chess_ini_serial import listen, queue
+from chess_ini_serial import *
 
 
 def wait_input():
@@ -35,6 +35,7 @@ while True:
 
     if board.is_game_over():
         print("GAMEEEE OVERRRRR BITCH!")
+        send_finish()
         break
 
     act = wait_input()
@@ -69,6 +70,7 @@ while True:
         except ValueError:
                 mov = list()
                 print("Nope")
+                send_error()
 
     img_svg.set_svg(chess.svg.board(board=board, squares=chess.SquareSet(squares[par[1]][par[0]]), check=square))
     modified.set()
