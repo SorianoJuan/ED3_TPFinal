@@ -1,13 +1,20 @@
 import threading
 import chess.svg
 from chess_ini_GUI import GUI, modified, img_svg
+from chess_ini_serial import listen
+from queue import Queue
+
+queue = Queue()
 
 
 def wait_input():
-    return input(">> ")
+    return queue.get()
 
-t = threading.Thread(target=GUI)
-t.start()
+t = list()
+t[0] = threading.Thread(target=GUI)
+t[1] = threading.Thread(target=listen)
+t[0].start()
+t[1].start()
 
 board = chess.Board()
 squares = [
