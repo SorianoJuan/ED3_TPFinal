@@ -9,8 +9,7 @@
  * refrescar_rgb(): carga los valores RGB correspondientes
  * buzzer(char a): suena una melodía dependiendo del char enviado
  */
-//TODO: Par emisor receptor
-//TODO: Funcion motor
+//TODO: Vibrar motor
 
 
 #ifdef __USE_CMSIS
@@ -63,13 +62,17 @@ unsigned int tabla[]= {
 static unsigned int display0 = 0;
 static unsigned int display1 = 0;
 static unsigned int display2 = 9;
+
 static unsigned int read_joystick = 1;
 static int bub = 0;
 static int t_entry=0;
 static char buzz=0;
 static unsigned int rebote = 0;
 static unsigned int eint_rebote = 0;
-static unsigned motor=0;
+static unsigned int motor=0;
+static unsigned int cont_motor=2000;
+static unsigned int fin_partida=0;
+static unsigned int inicializado=0;
 
 void setear_jugadores(void);
 void leer_joystick(void);
@@ -87,6 +90,22 @@ int main(void) {
 		if(buzz){
 			buzzer(buzz);
 			buzz=0;
+		}
+		if(fin_partida){
+			buzzer('e');
+			for(int i=0;i<10000;i++);
+			buzzer('p');
+			for(int i=0;i<10000;i++);
+			buzzer('f');
+			for(int i=0;i<10000;i++);
+			buzzer('p');
+			for(int i=0;i<10000;i++);
+			buzzer('f');
+			for(int i=0;i<10000;i++);
+			buzzer('e');
+			for(int i=0;i<10000;i++);
+			buzzer('f');
+			fin_partida=0;
 		}
 		if(read_joystick){
 			leer_joystick();
@@ -184,21 +203,25 @@ void buzzer (char a){
 	int x=0;
 	int state = 0;
 	switch(a){
-		case 'w':
-			frec = 400;
+		case 'p':
+			frec = 500;
+			duracion = 500;
 			break;
-		case 'k':
+		case 'f': //Fin de partida
 			frec = 2000;
+			duracion = 300;
 			break;
-		case 'm':
+		case 'c': //Ficha comida
 			frec = 1000;
+			duracion = 200;
+			break;
+		case 'e' : //Error de movimiento
+			frec = 400;
+			duracion = 500;
 			break;
 		default:
-			frec = 0;
-			break;
+			return;
 	}
-
-	duracion = 1000;
 
 	while((x < duracion) && frec){
 		if(t_entry){
@@ -230,7 +253,7 @@ void config(void){
   	*T0TCR |= (1<<1);
   	*T0TCR &= ~(1<<1);
   	*T0IR |=1;
-	*ISER0 |= (1<<1);
+	//*ISER0 |= (1<<1);
 
   	*T1TCR |= (1<<1);
   	*T1TCR &= ~(1<<1);
@@ -247,12 +270,6 @@ void TIMER0_IRQHandler (void){		//Contador de segundos
 		display0=jugador_actual->tiempo%10;
 		display1=(jugador_actual->tiempo/10)%10;
 		display2=(jugador_actual->tiempo/100)%10;
-		if(motor){
-			*FIO0CLR = (1<<10);
-			motor = 0;
-		}else{
-			*FIO0SET = (1<<10);
-		}
 	}
 	*T0IR |=1;						//Bajar INTRP de T1-MR0
 }
@@ -265,6 +282,15 @@ void TIMER1_IRQHandler (void){		//Multiplexado
 				*ISER0 |= (1<<(18+eint_rebote));
 				rebote = 0;
 			}
+	}
+	if(motor){//Vibrar motor
+		*FIO0CLR = (1<<10);
+		cont_motor--;
+		if (cont_motor==0){
+			motor = 0;
+			cont_motor=2000;
+			*FIO0SET = (1<<10);
+		}
 	}
 	if(*T1IR & 1){
 		t_entry=1;
@@ -302,6 +328,12 @@ void EINT0_IRQHandler(void){			//pulsador
 }
 
 void EINT2_IRQHandler(void){
+	if(!inicializado){//Empezar a contar el tiempo
+		inicializado=1;
+		*T1TCR &= ~(1<<1);
+		*T1TCR |= 1;					//Cuando es 1, habilita el contador del Timer y del Prescaler
+		*ISER0 |= (1<<1);
+	}
 	if(*EXTINT & (1<<2)){
 		if(jugador_actual->id==1){		//Cambiar de turno
 			jugador_actual=&jugador_dos;
@@ -309,7 +341,8 @@ void EINT2_IRQHandler(void){
 			jugador_actual=&jugador_uno;
 		}
 		refrescar_rgb();
-		buzz = 'k';
+		uart_enviardato('p');
+		buzz = 'p';
 		eint_rebote = 2;
 	}
 	*EXTINT |= (1<<2);
@@ -319,6 +352,17 @@ void EINT2_IRQHandler(void){
 void UART3_IRQHandler(void){
 	motor = 1;
 	char k=*U3RBR;
+		if(k=='e'){//error de movimiento
+			buzz='e';
+			cont_motor=2000;
+		}else if (k=='f'){//final de partida
+			fin_partida=1;
+			cont_motor=6000;
+		}else if (k=='c'){//ficha comida
+			buzz='c';
+			cont_motor=1000;
+		}
+
 	//while((*U3LSR&(1<<5))==0){}		//Esta transmitiendo, entonces esperar
 	//*U3THR='a';
 }
