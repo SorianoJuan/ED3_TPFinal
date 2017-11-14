@@ -27,10 +27,7 @@ def send_c():
 
 def listen():
 
-    aux = 0
-    i = 0
-    lentos = ['f', 'h', 'd', 'b']
-
+    rapidos = ['e', 'g', 'c', 'a']
     ser.isOpen()
 
     translate = dict(
@@ -52,12 +49,10 @@ def listen():
         if instruccion in translate.keys():
             print(">> ", instruccion)
 
-            if instruccion is not aux:
+            if instruccion in rapidos:
                 queue.put(translate[instruccion])
-                (aux, i) = (instruccion, 2) if instruccion in lentos else (0,0)
-            else:
-                aux = 0 if i is 0 else aux
-                i -= 1
+
+            queue.put(translate[instruccion])
 
         else:
             print("[!]Error en lectura ", instruccion)
