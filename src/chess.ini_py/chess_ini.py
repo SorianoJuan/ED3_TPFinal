@@ -26,9 +26,10 @@ squares = [
 ]
 par_white = [0, 0]
 par_black = [7, 7]
-par = par_white
+par = par_black
 square = None
 mov = list()
+last_action = 0
 img_svg.set_svg(chess.svg.board(board=board, squares=chess.SquareSet(squares[par[1]][par[0]])))
 legal = board.legal_moves
 while True:
@@ -42,40 +43,48 @@ while True:
     if act == 'q':
         modified.set()
         break
-    elif act == 'p':
-        par = par_black if par is par_white else par_white
-    elif act == 'a':
-        par[0] = par[0] - 1 if par[0] > 0 else 0
-    elif act == 'd':
-        par[0] = par[0] + 1 if par[0] < 7 else 7
-    elif act == 'w':
-        par[1] = par[1] + 1 if par[1] < 7 else 7
-    elif act == 's':
-        par[1] = par[1] - 1 if par[1] > 0 else 0
-    elif act == ' ':
-        square = list(chess.SquareSet(squares[par[1]][par[0]]))[0]
-        mov.append(square)
-        try:
-            if len(mov) == 2:
-                square = None
-                mov = chess.Move(mov[0], mov[1])
-                if mov in legal:
 
-                    if board.is_capture(mov):
-                        send_c()
-
-                    board.push(mov)
-                    mov = list()
-                else:
-                    raise ValueError
-            else:
-                if board.piece_at(square) is None:
+    if last_action is 0:
+        if act == 'p':
+            par = par_black if par is par_white else par_white
+            last_action = 1
+        else:
+            send_error()
+            continue
+    else:
+        if act == 'a':
+            par[0] = par[0] - 1 if par[0] > 0 else 0
+        elif act == 'd':
+            par[0] = par[0] + 1 if par[0] < 7 else 7
+        elif act == 'w':
+            par[1] = par[1] + 1 if par[1] < 7 else 7
+        elif act == 's':
+            par[1] = par[1] - 1 if par[1] > 0 else 0
+        elif act == ' ':
+            square = list(chess.SquareSet(squares[par[1]][par[0]]))[0]
+            mov.append(square)
+            try:
+                if len(mov) == 2:
                     square = None
-                    raise ValueError
-        except ValueError:
-                mov = list()
-                print("Nope")
-                send_error()
+                    mov = chess.Move(mov[0], mov[1])
+                    if mov in legal:
+
+                        if board.is_capture(mov):
+                            send_c()
+
+                        board.push(mov)
+                        mov = list()
+                        last_action = 0
+                    else:
+                        raise ValueError
+                else:
+                    if board.piece_at(square) is None:
+                        square = None
+                        raise ValueError
+            except ValueError:
+                    mov = list()
+                    print("Nope")
+                    send_error()
 
     img_svg.set_svg(chess.svg.board(board=board, squares=chess.SquareSet(squares[par[1]][par[0]]), check=square))
     modified.set()
