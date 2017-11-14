@@ -86,5 +86,8 @@ while True:
                     print("Nope")
                     send_error()
 
+        else:
+            send_error()
+
     img_svg.set_svg(chess.svg.board(board=board, squares=chess.SquareSet(squares[par[1]][par[0]]), check=square))
     modified.set()
