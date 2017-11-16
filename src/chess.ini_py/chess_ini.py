@@ -41,8 +41,13 @@ while True:
         break
 
     act = wait_input()
+
     if act == 'q':
         modified.set()
+        break
+
+    if act == 'r':
+        finished.set()
         break
 
     if last_action is 0:
