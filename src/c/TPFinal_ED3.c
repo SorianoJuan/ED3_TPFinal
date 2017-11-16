@@ -1,17 +1,3 @@
-
-/* Timer0: contador de segundos
- * Timer1: multiplexado de displays
- * ADC: modulo joystick
- * EINT0: pulsador
- * EINT3 (GPIO): par emisor receptor para pasar de turno
- * setear_jugadores(): inicializa el juego
- * leer_joystick(): lee los valores del ADC conectado al joystick y analiza si se pasa un threshold AD0.0 eje Y, AD0.1 eje X
- * refrescar_rgb(): carga los valores RGB correspondientes
- * buzzer(char a): suena una melodía dependiendo del char enviado
- */
-//TODO: Vibrar motor
-
-
 #ifdef __USE_CMSIS
 #include "LPC17xx.h"
 #endif
@@ -73,6 +59,7 @@ static unsigned int motor=0;
 static unsigned int cont_motor=2000;
 static unsigned int fin_partida=0;
 static unsigned int inicializado=0;
+static unsigned int inicio_partida=0;
 
 void setear_jugadores(void);
 void leer_joystick(void);
@@ -91,6 +78,22 @@ int main(void) {
 			buzzer(buzz);
 			buzz=0;
 		}
+        if(inicio_partida){
+            buzzer('e');
+            for(int i=0;i<10000;i++);
+            buzzer('p');
+            for(int i=0;i<10000;i++);
+            buzzer('f');
+            for(int i=0;i<10000;i++);
+            buzzer('p');
+            for(int i=0;i<10000;i++);
+            buzzer('f');
+            for(int i=0;i<10000;i++);
+            buzzer('e');
+            for(int i=0;i<10000;i++);
+            buzzer('f');
+            inicio_partida=0;
+        }
 		if(fin_partida){
 			buzzer('e');
 			for(int i=0;i<10000;i++);
@@ -105,7 +108,15 @@ int main(void) {
 			buzzer('e');
 			for(int i=0;i<10000;i++);
 			buzzer('f');
-			fin_partida=0;
+            //Deshabilitar todas las interrupciones
+			*ICER0 = (1<<8);				//Desabilita las interrupciones de UART3
+			*ICER0 = (1<<1);				//Deshabilita las interrupciones de Timer0
+			//*ICER0 |= (1<<2);				//Desabilita las interrupciones de Timer1
+			*ICER0 = (1<<18);				//Desabilita las interrupciones de EINT0
+			*ICER0 = (1<<20);				//Desabilita las interrupciones de EINT2
+			while (1){      //Bloquearse
+
+			}
 		}
 		if(read_joystick){
 			leer_joystick();
@@ -266,16 +277,23 @@ void config(void){
 
 void TIMER0_IRQHandler (void){		//Contador de segundos
 	if (*T0IR & 1){					//INTRP por MR0
-		jugador_actual->tiempo--;
-		display0=jugador_actual->tiempo%10;
-		display1=(jugador_actual->tiempo/10)%10;
-		display2=(jugador_actual->tiempo/100)%10;
+		if (jugador_actual->tiempo == 0){
+			uart_enviardato('r');	//Fin de partida
+			fin_partida=1;
+			motor = 1;
+			cont_motor=6000;
+		}else{
+			jugador_actual->tiempo--;
+			display0=jugador_actual->tiempo%10;
+			display1=(jugador_actual->tiempo/10)%10;
+			display2=(jugador_actual->tiempo/100)%10;
+		}
 	}
 	*T0IR |=1;						//Bajar INTRP de T1-MR0
 }
 
 void TIMER1_IRQHandler (void){		//Multiplexado
-	if(!(*ISER0 & (1<<18)) || !(*ISER0 &(1<<20))){//Antirebote
+	if((!(*ISER0 & (1<<18)) || !(*ISER0 &(1<<20)))&&!fin_partida){//Antirebote
 			rebote++;
 			if(rebote>600){
 				*EXTINT |= (1<<(0+eint_rebote));
@@ -329,10 +347,12 @@ void EINT0_IRQHandler(void){			//pulsador
 
 void EINT2_IRQHandler(void){
 	if(!inicializado){//Empezar a contar el tiempo
-		inicializado=1;
-		*T1TCR &= ~(1<<1);
+		inicio_partida=1;               //Tocar melodía
+        *T1TCR |= (1<<1);               //Reiniciar Timer
+        *T1TCR &= ~(1<<1);
 		*T1TCR |= 1;					//Cuando es 1, habilita el contador del Timer y del Prescaler
 		*ISER0 |= (1<<1);
+        inicializado=1;
 	}
 	if(*EXTINT & (1<<2)){
 		if(jugador_actual->id==1){		//Cambiar de turno
@@ -362,9 +382,6 @@ void UART3_IRQHandler(void){
 			buzz='c';
 			cont_motor=1000;
 		}
-
-	//while((*U3LSR&(1<<5))==0){}		//Esta transmitiendo, entonces esperar
-	//*U3THR='a';
 }
 
 int mediana(int *array, int muestras){
