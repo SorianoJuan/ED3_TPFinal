@@ -55,6 +55,7 @@ A continuación, se presenta el diseño realizado para la base:
 El conexionado de los periféricos se realizó como se indica en el siguiente diagrama ilustrativo:
 
 ![blocks](docs/img/BLOQUES-ED3.png)
+
 *Figura 3. Esquema de conexion del circuito*
 
 Una vez armado el joystick, el juego se ejecuta en una pc y está hecho en Python. La pc recibe el input que la placa le envía por UART a USB por medio del módulo USB-UART CP2102. Se debió implementar una interfaz para leer los comandos ingresados y enviar tramas serie de vuelta a la placa. El juego que se probó, Python-chess, es de código abierto. Fue necesario realizarle modificaciones para poder adaptarlo a nuestro proyecto.
