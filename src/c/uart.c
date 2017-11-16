@@ -1,8 +1,6 @@
 #include "uart.h"
 
 void uart_config (void){
-	//*PCONP |= (1<<3);				//Habilitar UART0
-	//*PCONP = 0x000003be;
 	*PCONP |= (1<<25);				//Prender UART3
 	*U3LCR |= 11;					//Palabra de 8 bits
 	*U3LCR |= (1<<7);				//Activar DLAB (Enable access to division latches para config de BR)
