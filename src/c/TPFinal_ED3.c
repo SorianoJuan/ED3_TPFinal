@@ -91,11 +91,11 @@ int main(void) {
 			buzzer('e');
 			for(int i=0;i<10000;i++);
 			buzzer('f');
-			*ICER0 |= (1<<8);				//Desabilita las interrupciones de UART3
-			*ICER0 |= (1<<1);				//Deshabilita las interrupciones de Timer0
+			*ICER0 = (1<<8);				//Desabilita las interrupciones de UART3
+			*ICER0 = (1<<1);				//Deshabilita las interrupciones de Timer0
 			//*ICER0 |= (1<<2);				//Desabilita las interrupciones de Timer1
-			*ICER0 |= (1<<18);				//Desabilita las interrupciones de EINT0
-			*ICER0 |= (1<<20);				//Desabilita las interrupciones de EINT2
+			*ICER0 = (1<<18);				//Desabilita las interrupciones de EINT0
+			*ICER0 = (1<<20);				//Desabilita las interrupciones de EINT2
 			while (1){
 
 			}
