@@ -111,7 +111,7 @@ int main(void) {
             //Deshabilitar todas las interrupciones
 			*ICER0 = (1<<8);				//Desabilita las interrupciones de UART3
 			*ICER0 = (1<<1);				//Deshabilita las interrupciones de Timer0
-			*ICER0 |= (1<<2);				//Desabilita las interrupciones de Timer1
+			//*ICER0 |= (1<<2);				//Desabilita las interrupciones de Timer1
 			*ICER0 = (1<<18);				//Desabilita las interrupciones de EINT0
 			*ICER0 = (1<<20);				//Desabilita las interrupciones de EINT2
 			while (1){      //Bloquearse
