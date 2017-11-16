@@ -59,6 +59,7 @@ static unsigned int motor=0;
 static unsigned int cont_motor=2000;
 static unsigned int fin_partida=0;
 static unsigned int inicializado=0;
+static unsigned int inicio_partida=0;
 
 void setear_jugadores(void);
 void leer_joystick(void);
@@ -77,6 +78,22 @@ int main(void) {
 			buzzer(buzz);
 			buzz=0;
 		}
+        if(inicio_partida){
+            buzzer('e');
+            for(int i=0;i<10000;i++);
+            buzzer('p');
+            for(int i=0;i<10000;i++);
+            buzzer('f');
+            for(int i=0;i<10000;i++);
+            buzzer('p');
+            for(int i=0;i<10000;i++);
+            buzzer('f');
+            for(int i=0;i<10000;i++);
+            buzzer('e');
+            for(int i=0;i<10000;i++);
+            buzzer('f');
+            inicio_partida=0;
+        }
 		if(fin_partida){
 			buzzer('e');
 			for(int i=0;i<10000;i++);
@@ -91,12 +108,13 @@ int main(void) {
 			buzzer('e');
 			for(int i=0;i<10000;i++);
 			buzzer('f');
+            //Deshabilitar todas las interrupciones
 			*ICER0 = (1<<8);				//Desabilita las interrupciones de UART3
 			*ICER0 = (1<<1);				//Deshabilita las interrupciones de Timer0
-			//*ICER0 |= (1<<2);				//Desabilita las interrupciones de Timer1
+			*ICER0 |= (1<<2);				//Desabilita las interrupciones de Timer1
 			*ICER0 = (1<<18);				//Desabilita las interrupciones de EINT0
 			*ICER0 = (1<<20);				//Desabilita las interrupciones de EINT2
-			while (1){
+			while (1){      //Bloquearse
 
 			}
 		}
@@ -329,11 +347,12 @@ void EINT0_IRQHandler(void){			//pulsador
 
 void EINT2_IRQHandler(void){
 	if(!inicializado){//Empezar a contar el tiempo
-		inicializado=1;
-		fin_partida=1;
-		*T1TCR &= ~(1<<1);
+		inicio_partida=1;               //Tocar melodía
+        *T1TCR |= (1<<1);               //Reiniciar Timer
+        *T1TCR &= ~(1<<1);
 		*T1TCR |= 1;					//Cuando es 1, habilita el contador del Timer y del Prescaler
 		*ISER0 |= (1<<1);
+        inicializado=1;
 	}
 	if(*EXTINT & (1<<2)){
 		if(jugador_actual->id==1){		//Cambiar de turno
