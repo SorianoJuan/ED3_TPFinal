@@ -111,7 +111,7 @@ int main(void) {
             //Deshabilitar todas las interrupciones
 			*ICER0 = (1<<8);				//Desabilita las interrupciones de UART3
 			*ICER0 = (1<<1);				//Deshabilita las interrupciones de Timer0
-			//*ICER0 |= (1<<2);				//Desabilita las interrupciones de Timer1
+			*ICER0 |= (1<<2);				//Desabilita las interrupciones de Timer1
 			*ICER0 = (1<<18);				//Desabilita las interrupciones de EINT0
 			*ICER0 = (1<<20);				//Desabilita las interrupciones de EINT2
 			while (1){      //Bloquearse
@@ -293,7 +293,7 @@ void TIMER0_IRQHandler (void){		//Contador de segundos
 }
 
 void TIMER1_IRQHandler (void){		//Multiplexado
-	if(!(*ISER0 & (1<<18)) || !(*ISER0 &(1<<20))){//Antirebote
+	if((!(*ISER0 & (1<<18)) || !(*ISER0 &(1<<20)))&&!fin_partida){//Antirebote
 			rebote++;
 			if(rebote>600){
 				*EXTINT |= (1<<(0+eint_rebote));
