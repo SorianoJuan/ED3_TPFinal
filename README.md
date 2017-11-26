@@ -9,17 +9,37 @@ La idea del proyecto es armar un módulo “joystick” utilizando la placa Nxp 
 
 ## Materiales
 
-* Placa Nxp LPC1769. 
-* Módulo Joystick. Consta de dos potenciómetros que de acuerdo a la posición en la que se encuentre el joystick, entregarán distintos valores de voltaje a la salida.
-* Pulsador. Un simple pulsador para controlar la selección de fichas para los movimientos y demás.
-* Botón. Al finalizar el turno de cada jugador, se deberá presionar el botón para indicar el final del turno del jugador. 
-* Displays de 7 segmentos (3). En los displays se mostrará el tiempo restante total del jugador de turno.
-* LED RGB. Indicará el turno del jugador. Al iniciar la partida ambos jugadores podrán elegir el color que desean y el led les indicará de quién es el turno.
-* Buzzer. Un simple buzzer que actuará como indicador de final de la partida, error en el movimiento de la ficha, etc.
+* Placa Nxp LPC1769 revisión C. 
+* Módulo Joystick - KY023. Consta de dos potenciómetros que de acuerdo a la posición en la que se encuentre el joystick, entregarán distintos valores de voltaje a la salida.
+* Pulsador – Normal abierto. Un simple pulsador para controlar la selección de fichas para los movimientos y demás.
+* Botón – Normal abierto. Al finalizar el turno de cada jugador, se deberá presionar el botón para indicar el final del turno del jugador. 
+* Displays de 7 segmentos ánodo común - 848 BS-A51ARI (3). En los displays se mostrará el tiempo restante total del jugador de turno.
+* Módulo LED RGB ánodo común – KY016. Indicará el turno del jugador. Al iniciar la partida ambos jugadores podrán elegir el color que desean y el led les indicará de quién es el turno.
+* Buzzer - KY012. Un simple buzzer que actuará como indicador de final de la partida, error en el movimiento de la ficha, etc.
+* Motor de DC – rf 300c 11440. Actuará como vibrador del joystick.
 * Módulo USB-UART CP2102.
-* Computador con Python 2/3 instalado. El juego correrá en la computadora, hecho en Python.
-* Resistencias, transistores, etc. Lo necesario para el correcto armado y funcionamiento del proyecto.
+* Fuente Tenstar Robot – Input 100-240 AC; Output 3.3V 3W. Fuente de alimentación del circuito.
+* Computador con Python 3 instalado. El juego correrá en la computadora, hecho en Python.
 * Impresora 3D. La base fue impresa utilizando una impresora 3D.
+* Transistores:
+
+- 3x BC640 (PNP) – Multiplexado del display,
+- 7x 2N2222 (NPN) – Segmentos del display.
+- 3x BC640 (PNP) – LED RGB.
+- 1x BC640 (NPN) – Buzzer.
+- 1x BC640 (PNP) – Motor.
+
+* Resistencias: 
+
+- 3x 1k Ω – Resistencia de base del multiplexado de los displays.
+- 7x 33 Ω – Resistencia de colector de los displays.
+- 7x 10k Ω – Resistencia de base de los displays.
+- 1x 10k Ω – Resistencia de base del motor.
+- 1x 33 Ω – Resistencia de colector del motor.
+- 3x 10k Ω – Resistencia de base del LED RGB.
+- 1x 10k Ω – Resistencia de base del buzzer.
+- 1x 33 Ω – Resistencia de colector del buzzer.
+
 
 
 ## Funcionamiento
